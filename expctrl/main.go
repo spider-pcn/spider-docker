@@ -7,7 +7,10 @@ import (
 	"time"
 	"sync"
 	"strconv"
+	"gopkg.in/zabawaba99/firego.v1"
 )
+
+var FIREBASE_URL string = "https://spider2.firebaseio.com/"
 
 func main() {
 	etcd := getEtcdKeyClient()
@@ -35,6 +38,28 @@ func main() {
 				var succMux sync.Mutex
 				numTot := 0
 				numSucc := 0
+
+				// Logging gorouting
+				go func () {
+					fmt.Printf("started new routine, from %s to %s\n", demand.Source, demand.Destination)
+					src := demand.Source
+					dst := demand.Destination
+					EXP_NAME := os.Getenv("SPIDER_EXP_NAME")
+					fb := firego.New(FIREBASE_URL + EXP_NAME + "/aggregateStats/" + src + "/" + dst, nil)
+					fmt.Printf("started firebase, EXP_NAME = %s\n", EXP_NAME)
+					for {
+						//fmt.Printf("src: %s, dst: %s\n", src, dst)
+						curVals := make(map[string] string)
+						curVals["attempted"] = fmt.Sprintf("%d", numTot)
+						curVals["successful"] = fmt.Sprintf("%d", numSucc)
+						go func() {
+							if _, err := fb.Push(curVals); err != nil {
+								fmt.Println("error when logging to firebase in main.go")
+							}
+						}()
+						time.Sleep(time.Duration(1) * time.Second)
+					}
+				}()
 
 				for {
 					resp, _ := etcdwatch.Next(context.Background())
@@ -75,6 +100,5 @@ func main() {
 	}
 	recverwg.Wait()
 	senderwg.Wait()
-
 }
 
