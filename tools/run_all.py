@@ -5,6 +5,24 @@ import time
 CMD_TEMPLATE = "./run.sh start-exp {topo_file} {exp_name} {time}"
 TOPO_NAMES = ["two_node_circ", "three_node_circ", "four_node_circ",
         "five_node_circ"]
+TOPO_NODES = [4, 4, 4, 5]
+
+# TOPO_NAMES = ["three_node_circ", "four_node_circ",
+        # "five_node_circ"]
+# TOPO_NODES = [3, 4, 5]
+
+FIREBASE_TEMPLATE = "python ~/lightning_routing/lnd-vis/main.py -exp_name {exp_name}"
+
+'''
+sequence of commands:
+    - stop instances
+    - start instances N
+    - init docker
+    - init image
+    - sync 
+    - rebuild 
+    - repackage
+'''
 
 def read_flags():
     parser = argparse.ArgumentParser()
@@ -18,12 +36,38 @@ def read_flags():
                                 help="")
     parser.add_argument("-stop_instances", action='store_true',
                                 help="")
+    parser.add_argument("-restart_instances", action='store_true',
+                                help="")
     return parser.parse_args()
 
-def run_exp(topo_name, exp_suffix):
+def run_exp(exp_num, exp_suffix):
+    topo_name = TOPO_NAMES[exp_num]
+    if args.restart_instances:
+        p = sp.Popen("./run.sh stop-instances", shell=True)
+        p.wait()
+        p = sp.Popen("./run.sh start-instances " + str(TOPO_NODES[exp_num]),
+                shell=True)
+        p.wait()
+        # sleep extra for instances to start
+        time.sleep(180)
+        p = sp.Popen("./run.sh init-docker", shell=True) 
+        p.wait()
+        time.sleep(2)
+        p = sp.Popen("./run.sh init-image", shell=True) 
+        p.wait()
+        time.sleep(4)
+        p = sp.Popen("./run.sh rebuild-binary lnd expctrl", shell=True)
+        p.wait()
+        print("rebuilt binaries")
+        time.sleep(5)
+        p = sp.Popen("./run.sh repackage-image", shell=True)
+        p.wait()
+        time.sleep(5)
+
     print("going to run exp: ", topo_name)
+    exp_name = args.exp_prefix + "-" + topo_name + "-" + exp_suffix
     cmd = CMD_TEMPLATE.format(topo_file = "../topology/" + topo_name + ".json",
-                              exp_name = args.exp_prefix + "-" + topo_name + "-" + exp_suffix,
+                              exp_name = exp_name,
                               time = args.exp_time)
     print("cmd: ", cmd)
 
@@ -33,16 +77,26 @@ def run_exp(topo_name, exp_suffix):
         time.sleep(args.exp_time*2)
     else:
         time.sleep(args.exp_time + 600)
-    sp.Popen("./run.sh stop-exp", shell=True)
+    p = sp.Popen("./run.sh stop-exp", shell=True)
+    p.wait()
     time.sleep(5)
+    # test it.
+    cmd = FIREBASE_TEMPLATE.format(exp_name = exp_name)
+    try:
+        p = sp.Popen(cmd, shell=True)
+        p.wait()
+    except:
+        pass
+        # nothing
+    # time.sleep(10)
 
 args = read_flags()
 for i in range(args.reps):
     if args.topos == -1:
-        for topo_name in TOPO_NAMES:
-            run_exp(topo_name, str(i))
+        for j, _ in enumerate(TOPO_NAMES):
+            run_exp(j, str(i))
     else:
-        run_exp(TOPO_NAMES[args.topos], str(i))
+        run_exp(args.topos, str(i))
 
 # shut down it all
 if args.stop_instances:
