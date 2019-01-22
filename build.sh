@@ -3,7 +3,8 @@ export BUILDROOT="$PWD"
 export BTCPATH="$PWD/btcroot"
 export GOPATH="$PWD/goroot"
 export PATH="$PATH:$GOPATH/bin"
-export BRANCH='new-stats'
+export BRANCH='clean-waterfilling-dp'
+#export BRANCH='pari-lp-routing-debug'
 
 BUILD_LND='false'
 BUILD_EXPCTRL='false'
@@ -28,6 +29,7 @@ if [ "$BUILD_LND" == "true" ] || [ "$BUILD_EXPCTRL" == "true" ] ; then
 	go get -u github.com/golang/dep/cmd/dep
 	go get -d github.com/urfave/cli
 	go get -d github.com/vibhaa/lnd
+	go get gopkg.in/zabawaba99/firego.v1
 
 	rm -rf $GOPATH/src/github.com/lightningnetwork/lnd
 	mv $GOPATH/src/github.com/vibhaa/lnd $GOPATH/src/github.com/lightningnetwork
@@ -96,7 +98,7 @@ if [ "$BUILD_BITCOIND" == "true" ]; then
 	cp $BTCPATH/bitcoin/src/bitcoin-tx $BUILDROOT/binaries/
 fi
 
-echo "Cleaning up build files"
+#echo "Cleaning up build files"
 rm -rf $GOPATH
 rm -rf $BTCPATH
 rm -rf $BUILDROOT/downloads
