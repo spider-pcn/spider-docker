@@ -49,23 +49,28 @@ func main() {
 						numTot += 1
 						etcd.Set(context.Background(), etcdTotalPath, strconv.Itoa(numTot), nil)
 						totMux.Unlock()
-						printfMux.Lock()
-						fmt.Printf("payment added\n")
-						printfMux.Unlock()
+
+						startTime := time.Now()
 						payresp, err := sendPayment(lnd, pr)
+						stopTime := time.Now()
+
 						if err == nil && payresp.PaymentError == "" {
 							succMux.Lock()
 							numSucc += 1
 							etcd.Set(context.Background(), etcdSuccPath, strconv.Itoa(numSucc), nil)
 							succMux.Unlock()
+							timeSpent := stopTime.Sub(startTime)
+							printfMux.Lock()
+							fmt.Printf("%v->%v: success: latency=%v\n", timeSpent.Nanoseconds())
+							printfMux.Unlock()
 						} else {
 							if err != nil {
 								printfMux.Lock()
-								fmt.Printf("payment rpc error: %v\n", err)
+								fmt.Printf("%v->%v: payment rpc error: %v\n", err)
 								printfMux.Unlock()
 							} else {
 								printfMux.Lock()
-								fmt.Printf("payment lnd error: %v\n", payresp.PaymentError)
+								fmt.Printf("%v->%v: payment lnd error: %v\n", payresp.PaymentError)
 								printfMux.Unlock()
 							}
 						}
