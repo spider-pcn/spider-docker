@@ -1,42 +1,42 @@
 package main
 
 import (
-	"os"
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
+	"os"
 )
 
 type Topology struct {
 	BtcdConnections []BtcdConnection `json:"btcd_connections"`
-	Nodes []Node `json:"nodes"`
-	Miner string `json:"miner"`
-	LndChannels []LndChannel `json:"lnd_channels"`
-	Demands []Demand `json:"demands"`
+	Nodes           []Node           `json:"nodes"`
+	Miner           string           `json:"miner"`
+	LndChannels     []LndChannel     `json:"lnd_channels"`
+	Demands         []Demand         `json:"demands"`
 }
 
 type BtcdConnection struct {
-	Source string `json:"src"`
+	Source      string `json:"src"`
 	Destination string `json:"dst"`
 }
 
 type Node struct {
 	Name string `json:"name"`
-	IP string `json:"ip"`
+	IP   string `json:"ip"`
 }
 
 type LndChannel struct {
-	Source string `json:"src"`
+	Source      string `json:"src"`
 	Destination string `json:"dst"`
-    Capacity int `json:"capacity"`
+	Capacity    int    `json:"capacity"`
 }
 
 type Demand struct {
-	Source string `json:"src"`
+	Source      string `json:"src"`
 	Destination string `json:"dst"`
-	Rate int `json:"rate"`
+	Rate        int    `json:"rate"`
 }
 
-func parseTopo (filename string) *Topology {
+func parseTopo(filename string) *Topology {
 	jsonFile, _ := os.Open(filename)
 	defer jsonFile.Close()
 

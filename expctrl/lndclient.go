@@ -2,17 +2,16 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	macaroon "gopkg.in/macaroon.v2"
 	"github.com/lightningnetwork/lnd/lncfg"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/macaroons"
+	"github.com/lightningnetwork/lnd/routing"
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	macaroon "gopkg.in/macaroon.v2"
+	"io/ioutil"
 	"os"
-	"github.com/lightningnetwork/lnd/routing"
-        "golang.org/x/net/context"
-
 )
 
 const tlsPath = "/root/.lnd/tls.cert"
@@ -20,7 +19,7 @@ const macPath = "/root/.lnd/data/chain/bitcoin/regtest/admin.macaroon"
 const rpcPort = "10009"
 const rpcPath = "localhost:10009"
 
-func addInvoice (lnd lnrpc.LightningClient, amt int64) (string, error) {
+func addInvoice(lnd lnrpc.LightningClient, amt int64) (string, error) {
 	invoice := &lnrpc.Invoice{
 		Value: amt,
 	}
@@ -31,7 +30,7 @@ func addInvoice (lnd lnrpc.LightningClient, amt int64) (string, error) {
 	return resp.PaymentRequest, nil
 }
 
-func sendPayment (lnd lnrpc.LightningClient, payreq string) (*lnrpc.SendResponse, error) {
+func sendPayment(lnd lnrpc.LightningClient, payreq string) (*lnrpc.SendResponse, error) {
 	sendReq := &lnrpc.SendRequest{
 		PaymentRequest: payreq,
 		SpiderAlgo:     routing.ShortestPath,
@@ -56,7 +55,7 @@ func getLNDClientConn() *grpc.ClientConn {
 	macBytes, err := ioutil.ReadFile(macPath)
 	if err != nil {
 		fatal(fmt.Errorf("unable to read macaroon path (check "+
-		"the network setting!): %v", err))
+			"the network setting!): %v", err))
 	}
 
 	mac := &macaroon.Macaroon{}
@@ -97,4 +96,3 @@ func fatal(err error) {
 	fmt.Fprintf(os.Stderr, "[spider] %v\n", err)
 	os.Exit(1)
 }
-

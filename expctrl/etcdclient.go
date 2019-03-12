@@ -2,8 +2,8 @@ package main
 
 import (
 	etcdclient "go.etcd.io/etcd/client"
-	"time"
 	"log"
+	"time"
 )
 
 func getEtcdKeyClient() etcdclient.KeysAPI {
@@ -19,4 +19,3 @@ func getEtcdKeyClient() etcdclient.KeysAPI {
 	kapi := etcdclient.NewKeysAPI(etcdc)
 	return kapi
 }
-
