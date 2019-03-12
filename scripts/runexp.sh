@@ -232,6 +232,11 @@ until [ `lncli -n regtest getnetworkinfo | jq '.num_channels'` == "$num_channels
 do
 	sleep 1
 done
+
+# set network delay
+#tcset eth0 --delay 30ms --add
+
+# tell everyone that I've seen all channels
 etcdctl set "/nodeinfo/$NODENAME/seenallchans" "yes" &> /dev/null
 
 # wait for all nodes to receive all channels
