@@ -31,9 +31,22 @@ func addInvoice(lnd lnrpc.LightningClient, amt int64) (string, error) {
 }
 
 func sendPayment(lnd lnrpc.LightningClient, payreq string) (*lnrpc.SendResponse, error) {
+	routingAlgo := 0;
+
+	switch routingEnv := os.LookupEnv("ROUTINGALGO"); routingEnv {
+	case "off":
+		routingAlgo = 0
+	case "shortest":
+		routingAlgo = routing.ShortestPath
+	case "waterfilling":
+		routingAlgo = routing.Waterfilling
+	case "lp":
+		routingAlgo = routing.LP
+	}
+
 	sendReq := &lnrpc.SendRequest{
 		PaymentRequest: payreq,
-		SpiderAlgo:     routing.ShortestPath,
+		SpiderAlgo:     routingAlgo,
 	}
 	payresp, err := lnd.SendPaymentSync(context.Background(), sendReq)
 	return payresp, err
