@@ -225,26 +225,29 @@ do
 	sleep 0.8
 done
 
-# wait for itself to receive all channels
-echo "Waiting to see all channels"
-num_channels=`cat $TOPO_FILE | jq '.lnd_channels | length'`
-until [ `lncli -n regtest getnetworkinfo | jq '.num_channels'` == "$num_channels" ]
-do
-	sleep 1
-done
+if [ "$NOCHECKVIEW" != '1' ]
+then
+	# wait for itself to receive all channels
+	echo "Waiting to see all channels"
+	num_channels=`cat $TOPO_FILE | jq '.lnd_channels | length'`
+	until [ `lncli -n regtest getnetworkinfo | jq '.num_channels'` == "$num_channels" ]
+	do
+		sleep 1
+	done
+
+	# tell everyone that I've seen all channels
+	etcdctl set "/nodeinfo/$NODENAME/seenallchans" "yes" &> /dev/null
+
+	# wait for all nodes to receive all channels
+	echo "Waiting for all nodes to see all channels"
+	for node in `cat $TOPO_FILE | jq -r '.nodes | .[] | .name'`; do
+		echo "Waiting for node $node"
+		etcdget /nodeinfo/$node/seenallchans &> /dev/null
+	done
+fi
 
 # set network delay
 #tcset eth0 --delay 30ms --add
-
-# tell everyone that I've seen all channels
-etcdctl set "/nodeinfo/$NODENAME/seenallchans" "yes" &> /dev/null
-
-# wait for all nodes to receive all channels
-echo "Waiting for all nodes to see all channels"
-for node in `cat $TOPO_FILE | jq -r '.nodes | .[] | .name'`; do
-	echo "Waiting for node $node"
-	etcdget /nodeinfo/$node/seenallchans &> /dev/null
-done
 
 echo "Running experiments"
 expctrl &> /root/log/exp.log &
