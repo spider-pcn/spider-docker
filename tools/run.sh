@@ -274,15 +274,21 @@ function copy_logs
 {
 	# $1: the directory name for resulting logs.
 	local expconfig=`cat nodehostmap.txt`
+	local pids=""
 	for nodeinfo in $expconfig; do
 		local node
 		local host
 		IFS=',' read -r node host <<< "$nodeinfo"
-		ssh $host mkdir -p container_logs
-		ssh $host -t "bash -ic 'docker cp spider$node:/root/log/ ./container_logs/spider$node'"
+		(
+			ssh $host -- mkdir -p container_logs
+			ssh $host -- docker cp spider$node:/root/log/ ./container_logs/spider$node
+		) &
+		pids="$pids $!"
 	done
-	echo "Waiting 3 seconds"
-	sleep 3
+	for pid in $pids ;
+	do
+		wait $pid
+	done
 	execute_on_all copy_log_files $1
 }
 
@@ -324,9 +330,9 @@ case "$1" in
 		    download-binary
 		        Download precompiled binaries
 
-				copy-logs DIR_NAME
-						Copies all log files from each spider container to DIR_NAME.
-						Creates DIR_NAME directory if it does not exist.
+		    copy-logs DIR_NAME
+		        Copies all log files from each spider container to DIR_NAME.
+		        Creates DIR_NAME directory if it does not exist.
 
 		Control Experiment
 
