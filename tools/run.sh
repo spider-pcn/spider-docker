@@ -212,6 +212,19 @@ function download_single
 	ssh $id -- /bin/bash /home/ubuntu/spider-docker/tools/remote_helper.sh download_bin
 }
 
+function copy_log_files_single
+{
+	# $1: host id, $2: EXP_NAME directory.
+	mkdir -p $2
+	scp -r $1:/home/ubuntu/container_logs/* ./$2
+}
+
+function delete_old_log_single
+{
+	ssh $1 -- rm -rf /home/ubuntu/container_logs
+}
+
+
 function execute_on_all
 {
 	# $1: execute function '$1_single'
@@ -262,6 +275,28 @@ function attach_to_container
 	done
 }
 
+function copy_logs
+{
+	# $1: the directory name for resulting logs.
+	execute_on_all delete_old_log
+	local expconfig=`cat nodehostmap.txt`
+	local pids=""
+	for nodeinfo in $expconfig; do
+		local node
+		local host
+		IFS=',' read -r node host <<< "$nodeinfo"
+		(
+			ssh $host -- mkdir -p container_logs
+			ssh $host -- docker cp spider$node:/root/log/ ./container_logs/spider$node
+		) &
+		pids="$pids $!"
+	done
+	for pid in $pids ;
+	do
+		wait $pid
+	done
+	execute_on_all copy_log_files $1
+}
 
 case "$1" in
 	help)
@@ -300,6 +335,10 @@ case "$1" in
 
 		    download-binary
 		        Download precompiled binaries
+
+		    copy-logs DIR_NAME
+		        Copies all log files from each spider container to DIR_NAME.
+		        Creates DIR_NAME directory if it does not exist.
 
 		Control Experiment
 
@@ -352,4 +391,6 @@ case "$1" in
 		ssh_to_server $2 ;;
 	attach)
 		attach_to_container $2 ;;
+	copy-logs)
+		copy_logs $2 ;;
 esac
