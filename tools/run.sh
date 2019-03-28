@@ -86,7 +86,7 @@ function start_container
 	# $1: node name, $2: ip, $3: host
 	topo_filename=`basename $TOPO_FILE`
 	topo_path="/root/topology/$topo_filename"
-	ssh $3 -- docker run --cap-add=NET_ADMIN -itd --name "spider$1" -e NODENAME=$1 -e NODEIP=$2 -e SPIDER_EXP_NAME="$EXP_NAME" -e TOPO_FILE="$topo_path" -e EXP_TIME="$EXP_TIME" --network spider --ip $2 spider
+	ssh $3 -- docker run --mount type=tmpfs,destination=/root/.lnd --cap-add=NET_ADMIN -itd --name "spider$1" -e NODENAME=$1 -e NODEIP=$2 -e SPIDER_EXP_NAME="$EXP_NAME" -e TOPO_FILE="$topo_path" -e EXP_TIME="$EXP_TIME" --network spider --ip $2 spider
 }
 
 function destroy_container
