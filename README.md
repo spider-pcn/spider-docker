@@ -5,7 +5,7 @@
 1. Clone this repository to somewhere that you like
 2. Add a line `Include config.d/spider` to the beginning of your `~/.ssh/config`
 3. `mkdir -p ~/.ssh/config.d`. We will write EC2 instance info to `config.d/spider`
-4. Install AWS CLI and configure your root key / IAM key
+4. Install AWS CLI (use `brew install awscli` on MAC) and configure your root key / IAM key
 5. `cd` into `tools/`, and use `run.sh` to control the experiment
 
 ## `run.sh` Usage
