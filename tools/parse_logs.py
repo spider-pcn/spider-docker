@@ -167,7 +167,6 @@ def make_endhost_stats_pdf(all_stats):
                 cur_attempt = attempted[si]
                 cur_attempt = max(cur_attempt, 1.00)
                 vals.append(succ / cur_attempt)
-            print(vals)
 
             if "frac-success" not in plotting_data:
                 plotting_data["frac-success"] = defaultdict(dict)
