@@ -219,6 +219,11 @@ function copy_log_files_single
 	scp -r $1:/home/ubuntu/container_logs/* ./$2
 }
 
+function delete_old_log_single
+{
+	ssh $1 -- rm -rf /home/ubuntu/container_logs
+}
+
 
 function execute_on_all
 {
@@ -273,6 +278,7 @@ function attach_to_container
 function copy_logs
 {
 	# $1: the directory name for resulting logs.
+	execute_on_all delete_old_log
 	local expconfig=`cat nodehostmap.txt`
 	local pids=""
 	for nodeinfo in $expconfig; do

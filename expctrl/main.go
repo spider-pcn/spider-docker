@@ -61,16 +61,16 @@ func main() {
 							succMux.Unlock()
 							timeSpent := stopTime.Sub(startTime)
 							printfMux.Lock()
-							fmt.Printf("%v->%v: success: latency=%v\n", demand.Source, demand.Destination, timeSpent.Nanoseconds())
+							fmt.Printf("[%v] %v->%v: success: latency=%v\n", startTime.UnixNano() / 1000000, demand.Source, demand.Destination, timeSpent.Nanoseconds())
 							printfMux.Unlock()
 						} else {
 							if err != nil {
 								printfMux.Lock()
-								fmt.Printf("%v->%v: payment rpc error: %v\n", demand.Source, demand.Destination, err)
+								fmt.Printf("[%v] %v->%v: payment rpc error: %v\n", startTime.UnixNano() / 1000000, demand.Source, demand.Destination, err)
 								printfMux.Unlock()
 							} else {
 								printfMux.Lock()
-								fmt.Printf("%v->%v: payment lnd error: %v\n", demand.Source, demand.Destination, payresp.PaymentError)
+								fmt.Printf("[%v] %v->%v: payment lnd error: %v\n", startTime.UnixNano() / 1000000, demand.Source, demand.Destination, payresp.PaymentError)
 								printfMux.Unlock()
 							}
 						}
