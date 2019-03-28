@@ -289,7 +289,7 @@ for node_name, node_data  in all_stats.items():
             # add plotting scripts for per channel data here.
             # pdb.set_trace()
 
-# make_router_stats_pdf(all_stats)
+make_router_stats_pdf(all_stats)
 
 # TODO: first correct for dividing up the data into time slots
-make_endhost_stats_pdf(all_stats)
+# make_endhost_stats_pdf(all_stats)
