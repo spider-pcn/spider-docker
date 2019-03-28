@@ -34,7 +34,9 @@ def read_flags():
 # "sDiffRemote: %v, aDiff: %v, sDiff: %v, mu_local: %v,"+
 # "lambda: %v, n_local: %v, n_remote: %v, q_remote: %v")
 
-KEYS_TO_PLOT = ["locBal", "bandwidth", "sent", "qlen", "xlocal", "nlocal"]
+KEYS_TO_PLOT = ["locBal", "bandwidth", "sent", "qlen",
+        "ix", "iy", "wx", "wy", "qx", "qy", "aDiffRemote", 
+        "sDiffRemote", "mu_local", "lambda"]
 
 BTC_TO_SATOSHIS = 100000000
 
@@ -76,16 +78,42 @@ def make_router_stats_pdf(all_stats):
                      compute_router_wealth=False)
 
 def make_endhost_stats_pdf(all_stats):
+    '''
+    - frac completed
+    - 
+    '''
+    total_attempt = 0.00
+    total_succ = 0.00
+    TIME_BUCKET = 5
     plotting_data = {}
     for node_name, node_data  in all_stats.items():
         if "e" not in node_name:
             continue
         for info_type, all_data in node_data.items():
             for other_node, chan_data in all_data.items():
+                if "e" not in node_name:
+                    continue
+                # want format: [key][src][dest] = [LIST]
+                # where LIST is: frac completed over per time period
+                assert "time" in chan_data
+                timestamps = chan_data["time"]
+                pdb.set_trace()
+                
+                # keys we care about:
+                #   payment_attempted
+                #   payment_success
+
                 for key, data in chan_data.items():
                     if key not in plotting_data:
                         plotting_data[key] = defaultdict(dict)
-                    plotting_data[key][node_name][other_node] = data
+                    plotting_data[key][node_name][other_node] = []
+
+                    cur_start_t = 0.00
+                    cur_vals = []
+                    for idx, val in enumerate(data):
+                        ts =  timestamps[idx]
+                        if ts < cur_start_t + TIME_BUCKET:
+                            pass
     
     # plots everything
     with PdfPages(args.exp_name + "_src_dest.pdf") as pdf:
@@ -261,7 +289,7 @@ for node_name, node_data  in all_stats.items():
             # add plotting scripts for per channel data here.
             # pdb.set_trace()
 
-make_router_stats_pdf(all_stats)
+# make_router_stats_pdf(all_stats)
 
 # TODO: first correct for dividing up the data into time slots
 make_endhost_stats_pdf(all_stats)
