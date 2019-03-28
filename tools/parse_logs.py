@@ -16,6 +16,8 @@ def read_flags():
             default="./test", help="")
     parser.add_argument("-exp_name", type=str, required=False,
             default="./woot", help="")
+    parser.add_argument("-frac_success_time_bucket", type=int, required=False,
+            default=5, help="")
     return parser.parse_args()
 
 ## here are the logging comments for per channel logs:
@@ -34,9 +36,17 @@ def read_flags():
 # "sDiffRemote: %v, aDiff: %v, sDiff: %v, mu_local: %v,"+
 # "lambda: %v, n_local: %v, n_remote: %v, q_remote: %v")
 
-KEYS_TO_PLOT = ["locBal", "bandwidth", "sent", "qlen",
+# for per channel stats
+PER_CHAN_KEYS = ["locBal", "bandwidth", "sent", "qlen",
         "ix", "iy", "wx", "wy", "qx", "qy", "aDiffRemote", 
         "sDiffRemote", "mu_local", "lambda"]
+
+# e2e keys
+PER_SRC_DST_KEYS = ["price", "rate"]
+
+# endhost info types:
+ENDHOST_INFO_TYPES = ["path_prices", "payment_attempted", 
+        "payment_success"]
 
 BTC_TO_SATOSHIS = 100000000
 
@@ -84,41 +94,89 @@ def make_endhost_stats_pdf(all_stats):
     '''
     total_attempt = 0.00
     total_succ = 0.00
-    TIME_BUCKET = 5
     plotting_data = {}
     for node_name, node_data  in all_stats.items():
         if "e" not in node_name:
             continue
         for info_type, all_data in node_data.items():
+            if info_type not in ENDHOST_INFO_TYPES:
+                continue
+
             for other_node, chan_data in all_data.items():
                 if "e" not in node_name:
                     continue
                 # want format: [key][src][dest] = [LIST]
                 # where LIST is: frac completed over per time period
                 assert "time" in chan_data
-                timestamps = chan_data["time"]
-                pdb.set_trace()
+                # pdb.set_trace()
                 
                 # keys we care about:
                 #   payment_attempted
                 #   payment_success
+                #   path prices
+                if info_type == "path_prices":
+                    for key, data in chan_data.items():
+                        if key == "time":
+                            continue
+                        if key not in plotting_data:
+                            plotting_data[key] = defaultdict(dict)
+                        if "time" in chan_data:
+                            xaxis = chan_data["time"]
+                            plotting_data[key][node_name][other_node] = (data,
+                                    xaxis)
+                        else:
+                            plotting_data[key][node_name][other_node] = (data,
+                                    None)
+                elif info_type == "payment_attempted" \
+                        or info_type == "payment_success":
+                    if info_type not in plotting_data:
+                        plotting_data[info_type] = defaultdict(dict)
+                    timestamps = chan_data["time"]
+                    start_ts = timestamps[0]
+                    # each idx of val will be an int representing how many
+                    # transactions attemped / successful in that period
+                    vals = []
+                    vals.append(0.00)
+                    for t in timestamps:
+                        if t < start_ts + len(vals)*args.frac_success_time_bucket:
+                            vals[-1] += 1.00
+                        else:
+                            # reset timer
+                            vals.append(0.00)
 
-                for key, data in chan_data.items():
-                    if key not in plotting_data:
-                        plotting_data[key] = defaultdict(dict)
-                    plotting_data[key][node_name][other_node] = []
-
-                    cur_start_t = 0.00
-                    cur_vals = []
-                    for idx, val in enumerate(data):
-                        ts =  timestamps[idx]
-                        if ts < cur_start_t + TIME_BUCKET:
-                            pass
+                    plotting_data[info_type][node_name][other_node] = (vals,
+                            None)
     
+    # convert to payment_success / payment_attempted 
+    pa = plotting_data["payment_attempted"]
+    ps = plotting_data["payment_success"]
+    for router, channel_info in pa.items():
+        # if router not in new_to_plot:
+            # new_to_plot[router] 
+
+        for channel, chan_data in channel_info.items():
+            attempted = chan_data[0]
+            success = ps[router][channel][0]
+            # print(len(attempted))
+            # print(len(success))
+            vals = []
+            for si, succ in enumerate(success):
+                if si >= len(attempted):
+                    continue
+                succ = max(succ, 1.00)
+                cur_attempt = attempted[si]
+                cur_attempt = max(cur_attempt, 1.00)
+                vals.append(succ / cur_attempt)
+
+            if "frac-success" not in plotting_data:
+                plotting_data["frac-success"] = defaultdict(dict)
+            plotting_data["frac-success"][router][channel] = (vals, None)
+
     # plots everything
     with PdfPages(args.exp_name + "_src_dest.pdf") as pdf:
         for k, to_plot in plotting_data.items():
-            print(k)
+            plot_relevant_stats(to_plot, pdf, k,
+                     compute_router_wealth=False)
 
 def plot_relevant_stats(data, pdf, signal_type, x_axis=None, compute_router_wealth=False):
     color_opts = ['#fa9e9e', '#a4e0f9', '#57a882', '#ad62aa']
@@ -205,8 +263,12 @@ def parse_log_file(fn):
         lines = f.readlines()
 
     print("num lines: ", len(lines))
-    # 1: find map between public keys to nodenames
+    # for src<->dst pairs
+    cur_attempted = 0
+    cur_success = 0
+
     for line in lines:
+        # 1: find map between public keys to nodenames
         if "public-key" in line:
             info = get_spider_info_pairs(line)
             key_to_node[info["public-key"]] = info["nodeName"]
@@ -229,8 +291,9 @@ def parse_log_file(fn):
 
             if other_node not in data:
                 data[other_node] = defaultdict(list)
-        
-            for k in KEYS_TO_PLOT:
+            
+            all_keys = PER_CHAN_KEYS + PER_SRC_DST_KEYS
+            for k in all_keys:
                 if k not in info:
                     continue
                 v = info[k]
@@ -251,9 +314,23 @@ def parse_log_file(fn):
             if "time" in info:
                 v = info["time"]
                 data[other_node]["time"].append(float(v))
-        
+
+        # elif "dest" in info:
+            # format:
+            #   stats["aggregate"]["other_node"]["attempted"] = [vals]
+            #       -> where each idx of vals represents the 
+            # if "aggregate" not in stats:
+                # stats["aggregate"] = {}
+            # data = stats["aggregate"]
+            # other_node = info["dest"]
+            # if other_node not in data:
+                # data[other_node] = defaultdict(list)
+            # assert "time" in info
+            # k = info["info_type"]
+            # old_val = data[other_node][k]
+            # timestamp = info["time"]
+ 
     return stats, key_to_node
-    print("parsing done")
 
 args = read_flags()
 all_key_to_node = {}
@@ -292,4 +369,4 @@ for node_name, node_data  in all_stats.items():
 make_router_stats_pdf(all_stats)
 
 # TODO: first correct for dividing up the data into time slots
-# make_endhost_stats_pdf(all_stats)
+make_endhost_stats_pdf(all_stats)
