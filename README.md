@@ -64,6 +64,7 @@ Connect to Testbed
 
     attach node
         Attach to container node
+        Always use ^-p ^-q and not exit to detach from the container
 ```
 
 ## Typical Experiment Flow
@@ -80,7 +81,7 @@ Connect to Testbed
 ```
 
 # Notes
-^-p ^-q: dettach from the container
+^-p ^-q: detach from the container
 
 # Topology File
 
