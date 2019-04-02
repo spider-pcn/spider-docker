@@ -1,0 +1,64 @@
+diff --git a/build.sh b/build.sh
+index 67c98ec..107df98 100644
+--- a/build.sh
++++ b/build.sh
+@@ -3,7 +3,7 @@ export BUILDROOT="$PWD"
+ export BTCPATH="$PWD/btcroot"
+ export GOPATH="$PWD/goroot"
+ export PATH="$PATH:$GOPATH/bin"
+-export BRANCH='clean-waterfilling-dp'
++export BRANCH='38e4f03cbd7258d8c9c4ee9953a776bfc14b3076'
+ 
+ BUILD_LND='false'
+ BUILD_EXPCTRL='false'
+@@ -27,14 +27,10 @@ done
+ if [ "$BUILD_LND" == "true" ] || [ "$BUILD_EXPCTRL" == "true" ] ; then
+ 	go get -u github.com/golang/dep/cmd/dep
+ 	go get -d github.com/urfave/cli
+-	go get -d github.com/vibhaa/lnd
+-
+-	rm -rf $GOPATH/src/github.com/lightningnetwork/lnd
+-	mv $GOPATH/src/github.com/vibhaa/lnd $GOPATH/src/github.com/lightningnetwork
++	go get -d github.com/lightningnetwork/lnd
+ 
+ 	cd $GOPATH/src/github.com/lightningnetwork/lnd
+ 	git checkout $BRANCH
+-	git pull origin $BRANCH
+ 	for lndpatch in $BUILDROOT/patches/*.lndpatch; do
+ 		echo "Applying $lndpatch"
+ 		git apply --ignore-space-change --ignore-whitespace $lndpatch
+diff --git a/expctrl/lndclient.go b/expctrl/lndclient.go
+index f8f5439..614a195 100644
+--- a/expctrl/lndclient.go
++++ b/expctrl/lndclient.go
+@@ -5,7 +5,6 @@ import (
+ 	"github.com/lightningnetwork/lnd/lncfg"
+ 	"github.com/lightningnetwork/lnd/lnrpc"
+ 	"github.com/lightningnetwork/lnd/macaroons"
+-	"github.com/lightningnetwork/lnd/routing"
+ 	"golang.org/x/net/context"
+ 	"google.golang.org/grpc"
+ 	"google.golang.org/grpc/credentials"
+@@ -31,22 +30,8 @@ func addInvoice(lnd lnrpc.LightningClient, amt int64) (string, error) {
+ }
+ 
+ func sendPayment(lnd lnrpc.LightningClient, payreq string) (*lnrpc.SendResponse, error) {
+-	var routingAlgo int32 = 0
+-
+-	switch routingEnv, _ := os.LookupEnv("ROUTINGALGO"); routingEnv {
+-	case "off":
+-		routingAlgo = 0
+-	case "shortest":
+-		routingAlgo = routing.ShortestPath
+-	case "waterfilling":
+-		routingAlgo = routing.Waterfilling
+-	case "lp":
+-		routingAlgo = routing.LP
+-	}
+-
+ 	sendReq := &lnrpc.SendRequest{
+ 		PaymentRequest: payreq,
+-		SpiderAlgo:     routingAlgo,
+ 	}
+ 	payresp, err := lnd.SendPaymentSync(context.Background(), sendReq)
+ 	return payresp, err
