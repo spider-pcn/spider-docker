@@ -10,6 +10,7 @@ import os
 from matplotlib.backends.backend_pdf import PdfPages
 from cycler import cycler
 
+DEBUG_LOCAL = True
 def read_flags():
     parser = argparse.ArgumentParser()
     parser.add_argument("-data_dir", type=str, required=False,
@@ -42,7 +43,7 @@ PER_CHAN_KEYS = ["locBal", "bandwidth", "sent", "qlen",
         "sDiffRemote", "mu_local", "lambda"]
 
 # e2e keys
-PER_SRC_DST_KEYS = ["price", "rate"]
+PER_SRC_DST_KEYS = ["price", "rate", "pathID"]
 
 # endhost info types:
 ENDHOST_INFO_TYPES = ["path_prices", "payment_attempted", 
@@ -115,18 +116,36 @@ def make_endhost_stats_pdf(all_stats):
                 #   payment_success
                 #   path prices
                 if info_type == "path_prices":
+                    # we shouldn't need to loop here.
+                    ## keys we care about: time, pathID, price.
+                    #plotting_data[key][node_name+other_node][pathID]=[price]
+                    if "time" in chan_data:
+                        xaxis = chan_data["time"]
+                    else:
+                        xaxis = None
+                    assert "pathID" in chan_data
+                    path_ids = chan_data["pathID"]
+                    src_dest = node_name + other_node
                     for key, data in chan_data.items():
-                        if key == "time":
+                        if key == "time" or key == "pathID":
                             continue
                         if key not in plotting_data:
                             plotting_data[key] = defaultdict(dict)
-                        if "time" in chan_data:
-                            xaxis = chan_data["time"]
-                            plotting_data[key][node_name][other_node] = (data,
-                                    xaxis)
-                        else:
-                            plotting_data[key][node_name][other_node] = (data,
-                                    None)
+
+                        # loop over all pathID <-> data pairs, and make lists
+                        # for each unique pathIDs
+                        unique_paths = set(path_ids)
+                        print(unique_paths)
+                        pdb.set_trace()
+                        for cur_path_id in unique_paths:
+                            cur_path_data = []
+                            cur_xaxis = []
+                            for data_idx, data_item in enumerate(data):
+                                if (path_ids[data_idx] == cur_path_id):
+                                    cur_path_data.append(data_item)
+                                    cur_xaxis.append(xaxis[data_idx])
+                            plotting_data[key][src_dest][cur_path_id]=(cur_path_data, cur_xaxis)
+
                 elif info_type == "payment_attempted" \
                         or info_type == "payment_success":
                     if info_type not in plotting_data:
