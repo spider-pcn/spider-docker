@@ -65,6 +65,15 @@ Connect to Testbed
     attach node
         Attach to container node
         Always use ^-p ^-q and not exit to detach from the container
+
+Parse Logs
+	
+		python3 parse_logs.py -data_dir LOG_DIR -exp_name EXP_NAME	
+				LOG_DIR would be the directory supplied to the copy-logs command, with
+				directories like spider0e etc. This will parse all the log files there
+				and generate two plots:
+					- EXP_NAME_per_channel_info.pdf
+					- EXP_NAME_src_dest.pdf	
 ```
 
 ## Typical Experiment Flow
