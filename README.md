@@ -9,6 +9,8 @@
 5. Configure your root key / IAM key. This involves creating a `~/.aws` directory and creating a `~/.aws/config` with the right availability zone and a `~/.aws/credentials` file with the right credentials.
 6. Install `jq`, a command line json parser
 7. `cd` into `tools/`, and use `run.sh` to control the experiment
+8. For parsing, and plotting the logs: `pip3 install matplotlib cycle`
+
 
 ## `run.sh` Usage
 
@@ -65,6 +67,7 @@ Connect to Testbed
     attach node
         Attach to container node
         Always use ^-p ^-q and not exit to detach from the container
+
 ```
 
 ## Typical Experiment Flow
@@ -79,6 +82,20 @@ Connect to Testbed
 ./run.sh stop-exp
 ./run.sh stop-instances
 ```
+
+## Parsing Logs
+
+After the experiment has completed, run:
+```
+./run.sh copy-logs LOG_DIR
+python3 parse_logs.py -data_dir LOG_DIR -exp_name EXP_NAME	
+```
+
+LOG_DIR would be the directory supplied to the copy-logs command, with
+directories like spider0e etc. This will parse all the log files there
+and generate two plots:
+	- EXP_NAME_per_channel_info.pdf
+	- EXP_NAME_src_dest.pdf	
 
 # Notes
 ^-p ^-q: detach from the container
