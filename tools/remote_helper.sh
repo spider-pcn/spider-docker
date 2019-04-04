@@ -22,8 +22,11 @@ function download_binaries
 
 	wget 'https://github.com/yangl1996/spider-docker/releases/download/v0.1/binaries.tar.gz'
 	wget 'https://github.com/thombashi/tcconfig/releases/download/v0.21.9/tcconfig_0.21.9_amd64.deb'
+	wget 'https://github.com/yangl1996/spider-docker/releases/download/v0.1/ngrok'
+	chmod +x ngrok
 	tar xf binaries.tar.gz
 	rm binaries.tar.gz
+	mv ngrok binaries
 }
 
 function build_image
