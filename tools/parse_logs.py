@@ -2,6 +2,7 @@ import argparse
 import glob
 import pdb
 from collections import defaultdict
+import numpy as np
 
 import matplotlib
 matplotlib.use('Agg')
@@ -220,7 +221,8 @@ def plot_relevant_stats(data, pdf, signal_type, x_axis=None, compute_router_weal
             if time is None:
                 time = range(len(values))
             label_name = str(router) + "->" + str(channel)
-            plt.plot(time, values, label=label_name)
+            plt.plot(time, values, label=label_name + "(" + str(np.average(values[int(len(values)/4):])) + ")")
+            print(signal_type, min(values), router, channel)
             if compute_router_wealth:
                 channel_bal_timeseries.append((time, values))
             i += 1

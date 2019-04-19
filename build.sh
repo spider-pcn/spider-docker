@@ -3,7 +3,9 @@ export BUILDROOT="$PWD"
 export BTCPATH="$PWD/btcroot"
 export GOPATH="$PWD/goroot"
 export PATH="$PATH:$GOPATH/bin"
-export BRANCH='clean-waterfilling-dp'
+export BRANCH='lnd-debug'
+#export BRANCH='master'
+#export FIRST_COMMIT='6243ab6a83d6e176cce675890706874bef5f8026'
 
 BUILD_LND='false'
 BUILD_EXPCTRL='false'
@@ -35,6 +37,7 @@ if [ "$BUILD_LND" == "true" ] || [ "$BUILD_EXPCTRL" == "true" ] ; then
 	cd $GOPATH/src/github.com/lightningnetwork/lnd
 	git checkout $BRANCH
 	git pull origin $BRANCH
+        #git checkout $FIRST_COMMIT
 	for lndpatch in $BUILDROOT/patches/*.lndpatch; do
 		echo "Applying $lndpatch"
 		git apply --ignore-space-change --ignore-whitespace $lndpatch

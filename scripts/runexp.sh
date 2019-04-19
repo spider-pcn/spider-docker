@@ -77,8 +77,12 @@ for config_line in $bitcoind_config; do
 done
 
 # start lnd
+lnd_configs='ATPL=error,BRAR=error,BTCN=error,CHDB=error,CMGR=error,CNCT=error,CRTR=error,DISC=error,FNDG=critical,'
+lnd_configs=$lnd_configs'HSWC=error,LNWL=info,LTND=error,RPCS=info,NTFN=critical,PEER=error,SPHX=error,SRVR=error,UTXN=error'
+
 while true; do
-	lnd --noseedbackup --debughtlc &> /root/log/lnd.log &
+	echo "lnd --noseedbackup --debughtlc --debuglevel $lnd_configs"
+	lnd --noseedbackup --debughtlc --debuglevel $lnd_configs &> /root/log/lnd.log &
 	lnd_pid=$!
 	# wait for lnd to start
 	waitforline /root/log/lnd.log $lnd_pid 'Opened wallet'

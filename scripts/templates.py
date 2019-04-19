@@ -11,7 +11,6 @@ rpcpassword=bitcoind
 bitcoind_connect = "connect={}\n"
 
 lnd_conf = """[Application Options]
-debuglevel=info
 listen=0.0.0.0:9735
 trickledelay=5000
 
