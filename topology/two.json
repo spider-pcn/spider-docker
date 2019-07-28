@@ -48,17 +48,17 @@
         {
             "src": "0r",
             "dst": "0e",
-            "capacity": 100000000
+            "capacity": 10000000000
         },
         {
             "src": "0r",
             "dst": "1r",
-            "capacity": 10000
+            "capacity": 10300
         },
         {
             "src": "1r",
             "dst": "1e",
-            "capacity": 100000000
+            "capacity": 10000000000
         }
     ]
 }

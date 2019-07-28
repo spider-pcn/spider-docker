@@ -42,6 +42,8 @@ func sendPayment(lnd lnrpc.LightningClient, payreq string) (*lnrpc.SendResponse,
 		routingAlgo = routing.Waterfilling
 	case "lp":
 		routingAlgo = routing.LP
+	case "dctcp":
+		routingAlgo = routing.DCTCP
 	}
 
 	sendReq := &lnrpc.SendRequest{

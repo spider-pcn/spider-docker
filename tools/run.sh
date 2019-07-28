@@ -382,6 +382,16 @@ case "$1" in
 		TOPO_FILE=$2
 		EXP_NAME=$3
 		EXP_TIME=$4
+
+
+                if [ "$#" -e 9 ]; then
+                    ALPHA=$5
+                    ETA=$6
+                    KAPPA=$7
+                    XI=$8
+                    QUEUE_DRAIN_TIME=$9
+                fi
+
 		start_experiment ;;
 	stop-exp)
 		stop_experiment ;;

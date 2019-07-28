@@ -12,6 +12,14 @@ export SPIDER_USE_WINDOWS=${SPIDER_USE_WINDOWS-1}
 export SPIDER_TIMEOUT=${SPIDER_TIMEOUT-1}	
 export ROUTINGALGO=${ROUTINGALGO-lp}
 
+export ALPHA=${ALPHA-0.2}
+export ETA=${ETA-0.025}
+export KAPPA=${KAPPA-0.025}
+export T_UPDATE=${T_UPDATE-1.5}
+export QUEUE_DRAIN_TIME=${QUEUE_DRAIN_TIME-5}
+export XI=${XI-1}
+export SERVICE_ARRIVAL_WINDOW=${SERVICE_ARRIVAL_WINDOW-300}
+
 mkdir -p /root/log
 /root/scripts/runexp.sh &> /root/log/main.log &
 bash
