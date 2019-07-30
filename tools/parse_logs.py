@@ -44,11 +44,11 @@ PER_CHAN_KEYS = ["locBal", "bandwidth", "sent", "qlen",
         "sDiffRemote", "mu_local", "lambda"]
 
 # e2e keys
-PER_SRC_DST_KEYS = ["price", "rate", "pathID"]
+PER_SRC_DST_KEYS = ["price", "rate", "pathID", "window", "inflight", "fractionMarked"]
 
 # endhost info types:
 ENDHOST_INFO_TYPES = ["path_prices", "payment_attempted", 
-        "payment_success"]
+        "payment_success", "window_size"]
 
 BTC_TO_SATOSHIS = 100000000
 
@@ -116,12 +116,14 @@ def make_endhost_stats_pdf(all_stats):
                 #   payment_attempted
                 #   payment_success
                 #   path prices
-                if info_type == "path_prices":
+                if info_type == "path_prices" or info_type == "window_size":
                     # we shouldn't need to loop here.
                     ## keys we care about: time, pathID, price.
                     #plotting_data[key][node_name+other_node][pathID]=[price]
                     if "time" in chan_data:
-                        xaxis = chan_data["time"]
+                        timestamps = chan_data["time"]
+                        start_ts = timestamps[0]
+                        xaxis = [t - start_ts for t in timestamps]
                     else:
                         xaxis = None
                     assert "pathID" in chan_data
@@ -136,8 +138,6 @@ def make_endhost_stats_pdf(all_stats):
                         # loop over all pathID <-> data pairs, and make lists
                         # for each unique pathIDs
                         unique_paths = set(path_ids)
-                        print(unique_paths)
-                        pdb.set_trace()
                         for cur_path_id in unique_paths:
                             cur_path_data = []
                             cur_xaxis = []
@@ -317,6 +317,7 @@ def parse_log_file(fn):
             for k in all_keys:
                 if k not in info:
                     continue
+
                 v = info[k]
                 if is_number(v):
                     v = float(v)
@@ -335,21 +336,7 @@ def parse_log_file(fn):
             if "time" in info:
                 v = info["time"]
                 data[other_node]["time"].append(float(v))
-
-        # elif "dest" in info:
-            # format:
-            #   stats["aggregate"]["other_node"]["attempted"] = [vals]
-            #       -> where each idx of vals represents the 
-            # if "aggregate" not in stats:
-                # stats["aggregate"] = {}
-            # data = stats["aggregate"]
-            # other_node = info["dest"]
-            # if other_node not in data:
-                # data[other_node] = defaultdict(list)
-            # assert "time" in info
-            # k = info["info_type"]
-            # old_val = data[other_node][k]
-            # timestamp = info["time"]
+            stats[info_type] = data
  
     return stats, key_to_node
 
@@ -367,7 +354,6 @@ for fn in glob.iglob(args.data_dir + "/**/lnd.log", recursive=True):
     # FIXME: better method
     start = fn.rfind("spider")+len("spider")
     node_name = fn[start:start+2]
-    print(node_name)
     stats, cur_pub_key = parse_log_file(fn)
     all_stats[node_name] = stats
     # all_dest_stats[node_name] = dest_stats
