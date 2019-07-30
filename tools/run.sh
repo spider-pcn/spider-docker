@@ -212,6 +212,19 @@ function download_single
 	ssh $id -- /bin/bash /home/ubuntu/spider-docker/tools/remote_helper.sh download_bin
 }
 
+function copy_binaries_single
+{
+        mkdir -p log
+	local instances=`cat instances.txt`
+	local pids=""
+        local id
+        local ip
+        IFS=',' read -r id ip <<< "${instances[0]}"
+        echo "Copying binaries from $id"
+        rsync -r $id:/home/ubuntu/spider-docker/binaries .
+        tar -cvzf binaries.tar.gz binaries/
+}
+
 function copy_log_files_single
 {
 	# $1: host id, $2: EXP_NAME directory.
@@ -376,6 +389,8 @@ case "$1" in
 		execute_on_all repackage ;;
 	rebuild-binary)
 		execute_on_all rebuild ${@:2} ;;
+        copy-binaries)
+                copy_binaries_single ;;
 	download-binary)
 		execute_on_all download ;;
 	start-exp)
@@ -384,13 +399,6 @@ case "$1" in
 		EXP_TIME=$4
 
 
-                if [ "$#" -e 9 ]; then
-                    ALPHA=$5
-                    ETA=$6
-                    KAPPA=$7
-                    XI=$8
-                    QUEUE_DRAIN_TIME=$9
-                fi
 
 		start_experiment ;;
 	stop-exp)
