@@ -20,7 +20,7 @@ time_diff = [(t - min_time)/1000.0 for t in times]
 
 print "average latency", np.average(np.array(latency))
 
-plt.plot(time_diff,latency, 'ro', markersize=2)
+plt.plot(time_diff, latency, 'ro', markersize=2)
 plt.xlabel('Time (s)')
 plt.ylabel('Latency (ms)')
 plt.savefig("latency.pdf")
