@@ -240,6 +240,11 @@ function delete_old_log_single
 	ssh $1 -- rm -rf /home/ubuntu/container_logs
 }
 
+function mount_nvme_single
+{
+	ssh $1 -- 'diskname=$(lsblk | grep 372 | cut -f 1 -d " ") && sudo rm -rf /var/lib/docker/volumes && sudo mkdir -m 777 /var/lib/docker/volumes && sudo mkfs -F -t ext4 /dev/$diskname && sudo mount /dev/$diskname /var/lib/docker/volumes && sudo chmod 777 /var/lib/docker/volumes'
+}
+
 
 function execute_on_all
 {
@@ -392,6 +397,8 @@ case "$1" in
 		execute_on_all repackage ;;
 	rebuild-binary)
 		execute_on_all rebuild ${@:2} ;;
+	mount-nvme)
+		execute_on_all mount_nvme ;;
         copy-binaries)
                 copy_binaries_single ;;
 	download-binary)
