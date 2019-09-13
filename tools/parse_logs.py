@@ -40,14 +40,14 @@ def read_flags():
 
 # for per channel stats
 PER_CHAN_KEYS = ["locBal", "bandwidth", "sent", "qlen",
-        "ix", "iy", "wx", "wy", "qx", "qy", "aDiffRemote", 
+        "ix", "iy", "wx", "wy", "qx", "qy", "aDiffRemote",
         "sDiffRemote", "mu_local", "lambda"]
 
 # e2e keys
 PER_SRC_DST_KEYS = ["price", "rate", "pathID", "window", "inflight", "fractionMarked"]
 
 # endhost info types:
-ENDHOST_INFO_TYPES = ["path_prices", "payment_attempted", 
+ENDHOST_INFO_TYPES = ["path_prices", "payment_attempted",
         "payment_success", "window_size"]
 
 BTC_TO_SATOSHIS = 100000000
@@ -72,6 +72,8 @@ def make_router_stats_pdf(all_stats):
                 for key, data in chan_data.items():
                     if key == "time":
                         continue
+                    if key == "locBal":
+                        data = np.array(data) / 200.00
                     if key not in plotting_data:
                         plotting_data[key] = defaultdict(dict)
 
@@ -82,7 +84,7 @@ def make_router_stats_pdf(all_stats):
                     else:
                         plotting_data[key][node_name][other_node] = (data,
                                 None)
-    
+
     # plots everything
     with PdfPages(args.exp_name + "_per_channel_info.pdf") as pdf:
         for k, to_plot in plotting_data.items():
@@ -92,7 +94,7 @@ def make_router_stats_pdf(all_stats):
 def make_endhost_stats_pdf(all_stats):
     '''
     - frac completed
-    - 
+    -
     '''
     total_attempt = 0.00
     total_succ = 0.00
@@ -111,7 +113,7 @@ def make_endhost_stats_pdf(all_stats):
                 # where LIST is: frac completed over per time period
                 assert "time" in chan_data
                 # pdb.set_trace()
-                
+
                 # keys we care about:
                 #   payment_attempted
                 #   payment_success
@@ -166,13 +168,13 @@ def make_endhost_stats_pdf(all_stats):
 
                     plotting_data[info_type][node_name][other_node] = (vals,
                             None)
-    
-    # convert to payment_success / payment_attempted 
+
+    # convert to payment_success / payment_attempted
     pa = plotting_data["payment_attempted"]
     ps = plotting_data["payment_success"]
     for router, channel_info in pa.items():
         # if router not in new_to_plot:
-            # new_to_plot[router] 
+            # new_to_plot[router]
 
         for channel, chan_data in channel_info.items():
             attempted = chan_data[0]
@@ -199,23 +201,30 @@ def make_endhost_stats_pdf(all_stats):
                      compute_router_wealth=False)
 
 def plot_relevant_stats(data, pdf, signal_type, x_axis=None, compute_router_wealth=False):
-    color_opts = ['#fa9e9e', '#a4e0f9', '#57a882', '#ad62aa']
+    # color_opts = ['#fa9e9e', '#a4e0f9', '#57a882', '#ad62aa']
     router_wealth_info =[]
 
-    for router, channel_info in data.items():
+    # sort routers first
+    routers = list(data.keys())
+    routers.sort()
+    for router in routers:
         # if "e" in router:
             # continue
+        channel_info = data[router]
         channel_bal_timeseries = []
         plt.figure()
-        plt.rc('axes', prop_cycle = (cycler('color', ['r', 'g', 'b', 'y', 'c', 'm', 'y', 'k']) +
-            cycler('linestyle', ['-', '--', ':', '-.', '-', '--', ':', '-.'])))
+        plt.rc('axes', prop_cycle = (cycler('color', ['r', 'g', 'b', 'y', 'c',
+            'm', 'y', 'k'])))
+        # plt.rc('axes', prop_cycle = (cycler('color', ['r', 'g', 'b', 'y', 'c', 'm', 'y', 'k']) +
+            # cycler('linestyle', ['-', '--', ':', '-.', '-', '--', ':', '-.'])))
 
         i = 0
-        for channel, chan_data in channel_info.items():
-            # FIXME: might need to add this.
-            # if "e" in channel:
-                # continue
-
+        # need to iterate through channels in sorted order
+        channels = list(channel_info.keys())
+        channels.sort()
+        # for channel, chan_data in channel_info.items():
+        for channel in channels:
+            chan_data = channel_info[channel]
             values = chan_data[0]
             time = chan_data[1]
             if time is None:
@@ -312,7 +321,7 @@ def parse_log_file(fn):
 
             if other_node not in data:
                 data[other_node] = defaultdict(list)
-            
+
             all_keys = PER_CHAN_KEYS + PER_SRC_DST_KEYS
             for k in all_keys:
                 if k not in info:
@@ -337,7 +346,7 @@ def parse_log_file(fn):
                 v = info["time"]
                 data[other_node]["time"].append(float(v))
             stats[info_type] = data
- 
+
     return stats, key_to_node
 
 args = read_flags()
@@ -369,7 +378,7 @@ for node_name, node_data  in all_stats.items():
             assert other_node in all_key_to_node
             new_all_data[all_key_to_node[other_node]] = chan_data
         node_data[info_type] = new_all_data
-        
+
             # add plotting scripts for per channel data here.
             # pdb.set_trace()
 

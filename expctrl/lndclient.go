@@ -31,6 +31,7 @@ func addInvoice(lnd lnrpc.LightningClient, amt int64) (string, error) {
 }
 
 func sendPayment(lnd lnrpc.LightningClient, payreq string) (*lnrpc.SendResponse, error) {
+
 	var routingAlgo int32 = 0
 
 	switch routingEnv, _ := os.LookupEnv("ROUTINGALGO"); routingEnv {
