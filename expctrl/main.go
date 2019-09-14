@@ -11,14 +11,15 @@ import (
 
 func main() {
 	fmt.Println("Experiment starting")
+  fmt.Println("Script updated test!")
 	etcd := getEtcdKeyClient()
 
 	nodename, _ := os.LookupEnv("NODENAME")
 	topopath, _ := os.LookupEnv("TOPO_FILE")
 	paymentSizeStr, _ := os.LookupEnv("PAYMENT_SIZE")
 	paymentSize, _ := strconv.ParseInt(paymentSizeStr, 10, 64)
-	spiderStartTime, _ := strconv.ParseInt("SPIDER_START_TIME", 10, 64)
-	spiderEndTime, _ := strconv.ParseInt("SPIDER_END_TIME", 10, 64)
+	//spiderStartTime, _ := strconv.ParseInt("SPIDER_START_TIME", 10, 64)
+	//spiderEndTime, _ := strconv.ParseInt("SPIDER_END_TIME", 10, 64)
 	//nodeip, _ := os.LookupEnv("NODEIP")
 	topo := parseTopo(topopath)
 
@@ -26,7 +27,8 @@ func main() {
 
 	var senderwg sync.WaitGroup
 	var recverwg sync.WaitGroup
-	expStartTime := time.Now()
+	//expStartTime := time.Now()
+  fmt.Println("going to start going through the demands")
 	for _, demand := range topo.Demands {
 		if demand.Source == nodename {
 			senderwg.Add(1)
@@ -41,8 +43,8 @@ func main() {
 				var succMux sync.Mutex
 				numTot := 0
 				numSucc := 0
-        spiderTot := 0
-        spiderSucc := 0
+        //spiderTot := 0
+        //spiderSucc := 0
 
 				for {
 					resp, _ := etcdwatch.Next(context.Background())
@@ -52,18 +54,18 @@ func main() {
 						defer cleanUp()
 
 						startTime := time.Now()
-						expTime := startTime.Sub(expStartTime).Seconds()
-            inSpiderWindow := false
+						//expTime := startTime.Sub(expStartTime).Seconds()
+            //inSpiderWindow := false
 
 						totMux.Lock()
 						numTot += 1
-            if (expTime >= spiderStartTime && expTime < spiderEndTime) {
-              inSpiderWindow = true
-              spiderTot += 1
-            }
+            //if (expTime >= spiderStartTime && expTime < spiderEndTime) {
+              //inSpiderWindow = true
+              //spiderTot += 1
+            //}
             // FIXME: should we set this in etcd?
-						//etcd.Set(context.Background(), etcdTotalPath, strconv.Itoa(numTot), nil)
-						etcd.Set(context.Background(), etcdTotalPath, strconv.Itoa(spiderTot), nil)
+						//etcd.Set(context.Background(), etcdTotalPath, strconv.Itoa(spiderTot), nil)
+            etcd.Set(context.Background(), etcdTotalPath, strconv.Itoa(numTot), nil)
 						totMux.Unlock()
 
 						payresp, err := sendPayment(lnd, pr)
@@ -72,12 +74,12 @@ func main() {
 						if err == nil && payresp.PaymentError == "" {
 							succMux.Lock()
 							numSucc += 1
-              if (inSpiderWindow) {
-                fmt.Printf("inSpiderWindow!")
-                spiderSucc += 1
-              }
-							//etcd.Set(context.Background(), etcdSuccPath, strconv.Itoa(numSucc), nil)
-							etcd.Set(context.Background(), etcdSuccPath, strconv.Itoa(spiderSucc), nil)
+              //if (inSpiderWindow) {
+                //fmt.Printf("inSpiderWindow!")
+                //spiderSucc += 1
+              //}
+              etcd.Set(context.Background(), etcdSuccPath, strconv.Itoa(numSucc), nil)
+							//etcd.Set(context.Background(), etcdSuccPath, strconv.Itoa(spiderSucc), nil)
 							succMux.Unlock()
 							timeSpent := stopTime.Sub(startTime)
 							printfMux.Lock()
