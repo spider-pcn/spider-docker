@@ -13,7 +13,7 @@ export SPIDER_TIMEOUT=${SPIDER_TIMEOUT-1}
 export ROUTINGALGO=${ROUTINGALGO-dctcp}
 
 export ALPHA=${ALPHA-10}
-export BETA=${BETA-0.01}
+export BETA=${BETA-0.1}
 export QUEUE_THRESHOLD=${QUEUE_THRESHOLD-300}
 
 mkdir -p /root/log
