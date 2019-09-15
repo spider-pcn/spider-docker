@@ -122,7 +122,8 @@ def make_endhost_stats_pdf(all_stats):
                 #   payment_attempted
                 #   payment_success
                 #   path prices
-                if info_type == "path_prices" or info_type == "window_size":
+                if info_type == "path_prices" or info_type == "window_size" or info_type == "inflight" or \
+                        info_type == "fraction_marked":
                     # we shouldn't need to loop here.
                     ## keys we care about: time, pathID, price.
                     #plotting_data[key][node_name+other_node][pathID]=[price]
