@@ -12,6 +12,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 from cycler import cycler
 
 DEBUG_LOCAL = True
+# KEYS_TO_PLOT = ["frac-success", "locBal"]
+
 def read_flags():
     parser = argparse.ArgumentParser()
     parser.add_argument("-data_dir", type=str, required=False,
@@ -86,8 +88,10 @@ def make_router_stats_pdf(all_stats):
                                 None)
 
     # plots everything
-    with PdfPages(args.exp_name + "_per_channel_info.pdf") as pdf:
+    with PdfPages(args.data_dir + "/" + args.exp_name + "_per_channel_info.pdf") as pdf:
         for k, to_plot in plotting_data.items():
+            # if k not in KEYS_TO_PLOT:
+                # continue
             plot_relevant_stats(to_plot, pdf, k,
                      compute_router_wealth=False)
 
@@ -195,8 +199,10 @@ def make_endhost_stats_pdf(all_stats):
             plotting_data["frac-success"][router][channel] = (vals, None)
 
     # plots everything
-    with PdfPages(args.exp_name + "_src_dest.pdf") as pdf:
+    with PdfPages(args.data_dir + "/" + args.exp_name + "_src_dest.pdf") as pdf:
         for k, to_plot in plotting_data.items():
+            # if k not in KEYS_TO_PLOT:
+                # continue
             plot_relevant_stats(to_plot, pdf, k,
                      compute_router_wealth=False)
 

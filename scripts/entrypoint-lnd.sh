@@ -2,7 +2,7 @@
 
 # set up default environ
 export TOPO_FILE=${TOPO_FILE-/root/topology/default_topo.json}  # default topo file
-export PAYMENT_SIZE=${PAYMENT_SIZE-200}                         # default payment size
+export PAYMENT_SIZE=${PAYMENT_SIZE-400}                         # default payment size
 export SPIDER_LOG_FIREBASE=${SPIDER_LOG_FIREBASE-0}             # enable firebase log by default
 export SPIDER_QUEUE=${SPIDER_QUEUE-0}                           # enable queue by default
 export EXP_TIME=${EXP_TIME-120}                                 # default duration is 120s
@@ -13,7 +13,7 @@ export SPIDER_USE_WINDOWS=${SPIDER_USE_WINDOWS-0}
 export SPIDER_TIMEOUT=${SPIDER_TIMEOUT-0}	
 export ROUTINGALGO=${ROUTINGALGO-off}
 export SPIDER_START_TIME=${SPIDER_START_TIME-300}
-export SPIDER_END_TIME=${SPIDER_START_TIME-600}
+export SPIDER_END_TIME=${SPIDER_END_TIME-600}
 
 mkdir -p /root/log
 /root/scripts/runexp.sh &> /root/log/main.log &
