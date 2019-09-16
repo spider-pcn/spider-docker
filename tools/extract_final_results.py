@@ -5,6 +5,7 @@ import os
 import pdb
 from collections import defaultdict
 import re
+import numpy as np
 
 SUMMARY_FILE_SUFFIX = "/spider0e/main.log"
 LATENCY_FILE_SUFFIX = "/spider{docker_name}/exp.log"
@@ -79,10 +80,27 @@ schemes = set(df["Scheme"])
 credits = set(df["Credit"])
 # circs = set(df["Circulation"])
 
+total_exps = 0
 data = defaultdict(list)
 for scheme in schemes:
     for credit in credits:
+        total_exps += 1
         print(scheme, credit)
         df2 = df[(df["Scheme"] == scheme) & (df["Credit"] == credit)]
-        print(df2)
-        pdb.set_trace()
+        if len(df2) < 5:
+            print(scheme)
+            print(credit)
+            print(df2["Circulation"])
+            pdb.set_trace()
+        max_succ = max(df2["SuccRatio"])
+        min_succ = min(df2["SuccRatio"])
+        avg_succ = np.average(df2["SuccRatio"])
+        # print(max_succ, min_succ, avg_succ)
+        data["Scheme"].append(scheme)
+        data["Credit"].append(credit)
+        data["SuccRatio"].append(avg_succ)
+        data["SuccRatioMin"].append(min_succ)
+        data["SuccRatioMax"].append(max_succ)
+
+df = pd.DataFrame(data)
+df.to_csv("test.csv", index=False)
