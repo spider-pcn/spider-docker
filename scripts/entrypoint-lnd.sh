@@ -13,7 +13,7 @@ export SPIDER_USE_WINDOWS=${SPIDER_USE_WINDOWS-0}
 export SPIDER_TIMEOUT=${SPIDER_TIMEOUT-0}	
 export ROUTINGALGO=${ROUTINGALGO-off}
 export SPIDER_START_TIME=${SPIDER_START_TIME-300}
-export SPIDER_END_TIME=${SPIDER_END_TIME-600}
+export SPIDER_END_TIME=${SPIDER_END_TIME-500}
 
 mkdir -p /root/log
 /root/scripts/runexp.sh &> /root/log/main.log &

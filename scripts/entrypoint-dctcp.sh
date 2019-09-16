@@ -12,9 +12,12 @@ export SPIDER_USE_WINDOWS=${SPIDER_USE_WINDOWS-1}
 export SPIDER_TIMEOUT=${SPIDER_TIMEOUT-1}	
 export ROUTINGALGO=${ROUTINGALGO-dctcp}
 
-export ALPHA=${ALPHA-10}
+export ALPHA=${ALPHA-5}
 export BETA=${BETA-0.1}
 export QUEUE_THRESHOLD=${QUEUE_THRESHOLD-300}
+export SPIDER_QUEUE_UPDATE_TIME=${SPIDER_QUEUE_UPDATE_TIME-10}	# default queue busy waiting time
+export SPIDER_START_TIME=${SPIDER_START_TIME-300}
+export SPIDER_END_TIME=${SPIDER_END_TIME-500}
 
 mkdir -p /root/log
 /root/scripts/runexp.sh &> /root/log/main.log &
